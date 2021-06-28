@@ -1,127 +1,547 @@
 <div class="delivery-closures" role="main">
 
-
-
-    <div class="calendar-info container-fluid" role="region" aria-label="Delivery Closure Summary Section">
-          <div class="row pt-3 align-items-start">
-              <div class="col-12 col-md-6 offset-md-3 flex-column pt-3">
-
-                  <h2 class="section-heading text-md-center">Quick Select your Closed Days</h2>
-
-                  <div class="d-flex year-picker">
-                    <button *ngIf="isEndYr" class="btn-icon next-left"
-                    aria-label="scroll calendar left" (click)="prevYear()">
-                    <svg class="icon " focusable="false">
-                      <use xlink:href="assets/static/icons/bootstrap-caret-left.svg#asset"></use>
-                      <title></title>
-                    </svg>
-                  </button>
-                      <form *ngIf="calendarArray">
-
-                          <div class="btn-group btn-group-toggle" ngbRadioGroup name="radioBasic"
-
-                              aria-label="Please select a year to specific delivery closures for">
-                              <label ngbButtonLabel class="btn-year" tabindex="0">
-                                  <input ngbButton type="radio" active value="begin"> {{displayYearSlider[0]}}
-                              </label>
-                              <label ngbButtonLabel class="btn-year" tabindex="0">
-                                  <input ngbButton type="radio" value="middle"> {{displayYearSlider[1]}}
-                              </label>
-                              <label ngbButtonLabel class="btn-year" tabindex="0">
-                                  <input ngbButton type="radio" value="end"> {{displayYearSlider[2]}}
-                              </label>
-                          </div>
-
-                      </form>
-                      <button  class="btn-icon next-right"
-          aria-label="scroll calendar right" (click)="nextYear()">
-          <svg class="icon " focusable="false">
-            <use xlink:href="assets/static/icons/bootstrap-caret-right.svg#asset"></use>
-            <title></title>
-          </svg>
-        </button>
-                  </div>
-
-              </div>
-          </div>
+  <div class="container-fluid" role="heading" aria-label="Delivery closure page heading section">
+    <div class="row mt-4 mb-4 d-flex">
+      <div class="col-12 col-md-3 pr-5 preference-heading">
+        Delivery Closures
       </div>
+      <div class="col-12 col-md-6 mt-1 ml-md-n2 preference-blurb">
+        Avoid undeliverable fees. Quick select any additional
+        days your pharmacy will be closed to deliveries <span class="font-weight-bold">no
+          later than 2 weeks before the closure.</span> If you need to
+        change submitted dates beyond the deadline, please
+        contact Customer Service at <a href="tel:8009263161">800.926.3161</a>.
+      </div>
+      <div class="col-12 col-md-3 pt-2 preference-blurb right-column">
+        <div *ngIf="lastEditedId; else elseBlock">
+          <div>Last edited {{lastEditedDate}}</div>
+          <div>by {{lastEditedId}}</div>
+        </div>
+        <ng-template #elseBlock>No edits yet</ng-template>
+      </div>
+    </div>
 
-    <div class="calendar-container pt-2 pb-5" role="region"
-      aria-label="Select your delivery closures from the calendar below">
+    <h2 class="pl-0 col-12 offset-md-3 col-md-9 section-heading mb-3"
+      *ngIf="displayDeliveryClosuresByMonth[0]?.length > 0 || displayDeliveryClosuresByMonth[1]?.length > 0 || displayDeliveryClosuresByMonth[2]?.length > 0 || displayDeliveryClosuresByMonth[3]?.length > 0
+                || displayDeliveryClosuresByMonth[4]?.length > 0 || displayDeliveryClosuresByMonth[5]?.length > 0 || displayDeliveryClosuresByMonth[6]?.length > 0 || displayDeliveryClosuresByMonth[7]?.length > 0
+                || displayDeliveryClosuresByMonth[8]?.length > 0 || displayDeliveryClosuresByMonth[9]?.length > 0 || displayDeliveryClosuresByMonth[10]?.length > 0 || displayDeliveryClosuresByMonth[11]?.length > 0">
+      Your {{currentYearUI}} pharmacy closures
+    </h2>
+    <div class="pl-0 mb-md-2 col-12 offset-md-3 col-md-7 d-flex flex-column flex-md-row flex-md-wrap">
 
-      <div class="calendars">
+      <div *ngIf="displayDeliveryClosuresByMonth[0]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="January closure summary">
+        January
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[0]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[0];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
 
-        <button *ngIf="isEnd" class="btn-icon next-left"
-          aria-label="scroll calendar left" (click)="prevMonth()">
-          <svg class="icon " focusable="false">
-            <use xlink:href="assets/static/icons/bootstrap-caret-left.svg#asset"></use>
-            <title></title>
-          </svg>
-        </button>
-        <button  class="btn-icon next-right"
-          aria-label="scroll calendar right" (click)="nextMonth()">
-          <svg class="icon " focusable="false">
-            <use xlink:href="assets/static/icons/bootstrap-caret-right.svg#asset"></use>
-            <title></title>
-          </svg>
-        </button>
+              <svg class="icon" focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
 
-        <div #monthsContent class="scrollmenu">
-
-          <div class="card" *ngFor="let month of calendarArray; let i = index" aria-label="Calendar month">
-
-            <h3 class="text-md-center">{{ displayDateHeader[i] | monthTransform }} {{ currentYearUI }}</h3>
-
-            <table role="presentation">
-              <tr *ngFor="let row of month;">
-                <td *ngFor="let column of days; let i = index;">
-                  <div *ngIf="row[i].dateNumber !== '0'">
-
-                    <button *ngIf="!row[i].isPast && !row[i].isDefault" class="btn-date" [ngClass]="{
-                                              'selected' : row[i].isSelected,
-                                              'unselected' : !row[i].isSelected}"
-                      >
-
-                      <svg class="icon " focusable="false">
-                        <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
-                        <title></title>
-                      </svg>
-                      <title></title>
-                      <div class="day">{{row[i].dayOfWeek}}</div>
-                      <div class="number">{{row[i].dateNumber }}</div>
-                    </button>
-                    <div *ngIf="row[i].isPast || row[i].isDefault" class="btn-date"
-                    [ngClass]="{
-                    'today' : row[i].dateKey ,
-                    'passed' : row[i].isPast && row[i].isDefault,
-                    'passed-selected' : row[i].isSelected && row[i].isPast && !row[i].isDefault,
-                    'passed-unselected' : !row[i].isSelected && row[i].isPast && !row[i].isDefault}"
-
-                    triggers="click:blur"
-                      >
-
-                      <svg *ngIf="row[i].isDefault" class="icon logo" focusable="false">
-                        <use xlink:href="assets/static/icons/icon-CH-logo.svg#asset"></use>
-                        <title></title>
-                      </svg>
-                      <svg *ngIf="!row[i].isDefault" class="icon " focusable="false">
-                        <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
-                        <title></title>
-                      </svg>
-                      <div class="day">{{row[i].dayOfWeek}}</div>
-                      <div class="number">{{row[i].dateNumber}}</div>
-                    </div>
-
-                  </div>
-                </td>
-              </tr>
-            </table>
+              <svg class="icon" focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
           </div>
         </div>
+      </div>
 
+      <div *ngIf="displayDeliveryClosuresByMonth[1]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="February closure summary">
+        February
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[1]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[1];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[2]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="March closure summary">
+        March
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[2]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[2];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[3]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="April closure summary">
+        April
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[3]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[3];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[4]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="May closure summary">
+        May
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[4]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[4];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[5]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="June closure summary">
+        June
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[5]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[5];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[6]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="July closure summary">
+        July
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[6]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[6];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[7]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="August closure summary">
+        August
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[7]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[7];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[8]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="September closure summary">
+        September
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[8]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[8];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[9]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="October closure summary">
+        October
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[9]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[9];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[10]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="November closure summary">
+        November
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[10]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[10];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="displayDeliveryClosuresByMonth[11]?.length > 0" class="month-summary mb-3 mr-5"
+        aria-label="December closure summary">
+        December
+        <div class="d-flex flex-wrap" [ngClass]="{'flex-md-nowrap' : displayDeliveryClosuresByMonth[11]?.length < 11}">
+          <div *ngFor="let month of displayDeliveryClosuresByMonth[11];let i = index">
+            <button *ngIf="!month.isPast && !month.isDefault" class="btn-date" [ngClass]="{
+                                'selected' : month.isSelected,
+                                'unselected' : !month.isSelected}"
+              (click)="getDateId(month.isSelected, month.dateKey)">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </button>
+            <div *ngIf="month.isPast " class="btn-date" [ngClass]="{
+                                'passed-selected' : month.isSelected && month.isPast && !month.isDefault,
+                                'passed-unselected' : !month.isSelected && month.isPast && !month.isDefault}"
+              placement="auto" triggers="click:blur">
+
+              <svg class="icon " focusable="false">
+                <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                <title></title>
+              </svg>
+              <div class="day">{{month.dayOfWeek}}</div>
+              <div class="number">{{month.dateNumber | dayConvert}}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+
+
+  <div class="calendar-info container-fluid" role="region" aria-label="Delivery Closure Summary Section">
+    <div class="row pt-3 align-items-start">
+      <div class="col-12 col-md-6 offset-md-3 flex-column pt-3">
+
+        <h2 class="section-heading text-md-center">Quick Select your Closed Days</h2>
+
+        <div class="d-flex year-picker">
+          <button *ngIf="isEndYr" class="btn-icon next-left" aria-label="scroll calendar left" (click)="prevYear()">
+            <svg class="icon " focusable="false">
+              <use xlink:href="assets/static/icons/bootstrap-caret-left.svg#asset"></use>
+              <title></title>
+            </svg>
+          </button>
+          <form *ngIf="calendarArray">
+
+            <div class="btn-group btn-group-toggle" ngbRadioGroup name="radioBasic"
+              aria-label="Please select a year to specific delivery closures for">
+              <label ngbButtonLabel class="btn-year" tabindex="0">
+                <input ngbButton type="radio" active value="begin"> {{displayYearSlider[0]}}
+              </label>
+              <label ngbButtonLabel class="btn-year" tabindex="0">
+                <input ngbButton type="radio" value="middle"> {{displayYearSlider[1]}}
+              </label>
+              <label ngbButtonLabel class="btn-year" tabindex="0">
+                <input ngbButton type="radio" value="end"> {{displayYearSlider[2]}}
+              </label>
+            </div>
+
+          </form>
+          <button class="btn-icon next-right" aria-label="scroll calendar right" (click)="nextYear()">
+            <svg class="icon " focusable="false">
+              <use xlink:href="assets/static/icons/bootstrap-caret-right.svg#asset"></use>
+              <title></title>
+            </svg>
+          </button>
+        </div>
 
       </div>
     </div>
+  </div>
+
+  <div class="calendar-container pt-2 pb-5" role="region"
+    aria-label="Select your delivery closures from the calendar below">
+
+    <div class="calendars">
+
+      <button *ngIf="isEnd" class="btn-icon next-left" aria-label="scroll calendar left" (click)="prevMonth()">
+        <svg class="icon " focusable="false">
+          <use xlink:href="assets/static/icons/bootstrap-caret-left.svg#asset"></use>
+          <title></title>
+        </svg>
+      </button>
+      <button class="btn-icon next-right" aria-label="scroll calendar right" (click)="nextMonth()">
+        <svg class="icon " focusable="false">
+          <use xlink:href="assets/static/icons/bootstrap-caret-right.svg#asset"></use>
+          <title></title>
+        </svg>
+      </button>
+
+      <div #monthsContent class="scrollmenu">
+
+        <div class="card" *ngFor="let month of calendarArray; let i = index" aria-label="Calendar month">
+
+          <h3 class="text-md-center">{{ displayDateHeader[i] | monthTransform }} {{ currentYearUI }}</h3>
+
+          <table role="presentation">
+            <tr *ngFor="let row of month;">
+              <td *ngFor="let column of days; let i = index;">
+                <div *ngIf="row[i].dateNumber !== '0'">
+
+                  <button *ngIf="!row[i].isPast && !row[i].isDefault" class="btn-date" [ngClass]="{
+                                              'selected' : row[i].isSelected,
+                                              'unselected' : !row[i].isSelected}"
+                    (click)="getDateId(row[i].isSelected, row[i].dateKey)">
+
+                    <svg class="icon " focusable="false">
+                      <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                      <title></title>
+                    </svg>
+                    <title></title>
+                    <div class="day">{{row[i].dayOfWeek}}</div>
+                    <div class="number">{{row[i].dateNumber }}</div>
+                  </button>
+                  <div *ngIf="row[i].isPast || row[i].isDefault" class="btn-date" [ngClass]="{
+                    'today' : row[i].dateKey | todayIcon,
+                    'passed' : row[i].isPast && row[i].isDefault,
+                    'passed-selected' : row[i].isSelected && row[i].isPast && !row[i].isDefault,
+                    'passed-unselected' : !row[i].isSelected && row[i].isPast && !row[i].isDefault}"
+                    triggers="click:blur">
+
+                    <svg *ngIf="row[i].isDefault" class="icon logo" focusable="false">
+                      <use xlink:href="assets/static/icons/icon-CH-logo.svg#asset"></use>
+                      <title></title>
+                    </svg>
+                    <svg *ngIf="!row[i].isDefault" class="icon " focusable="false">
+                      <use xlink:href="assets/static/icons/icon-checkmark.svg#asset"></use>
+                      <title></title>
+                    </svg>
+                    <div class="day">{{row[i].dayOfWeek}}</div>
+                    <div class="number">{{row[i].dateNumber}}</div>
+                  </div>
+
+                </div>
+              </td>
+            </tr>
+          </table>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
   <!--
     <ng-template #contentSelectMore let-modal role="dialog" aria-modal="true" aria-hidden="true">
       <div class="select-more">
@@ -168,7 +588,7 @@
     </ng-template>
   -->
 
-    <!-- <ng-template #contentLocations let-modal role="dialog" aria-modal="true" aria-hidden="true">
+  <!-- <ng-template #contentLocations let-modal role="dialog" aria-modal="true" aria-hidden="true">
       <div class="multi-store">
         <div class="modal-header">
         </div>
@@ -187,7 +607,7 @@
       </div>
     </ng-template> -->
 
-    <!-- <ng-template #contentConfirmation let-modal role="dialog" aria-modal="true" aria-hidden="true">
+  <!-- <ng-template #contentConfirmation let-modal role="dialog" aria-modal="true" aria-hidden="true">
       <div class="confirmation">
         <div class="modal-header">
           <button type="button" class="close" (click)="datesSubmitted()" aria-label="Close">
@@ -243,7 +663,7 @@
       </div>
     </ng-template> -->
 
-    <!-- <div class="calendar-footer p-3 p-md-0 pt-md-4 pb-md-4 d-flex" [ngClass]="{'stuck' : isDateSelected}">
+  <!-- <div class="calendar-footer p-3 p-md-0 pt-md-4 pb-md-4 d-flex" [ngClass]="{'stuck' : isDateSelected}">
       <img src="assets/static/images/CH-logo-sticky-svg.svg" alt="Cardinal Health" />
       <div class="container-fluid">
         <div class="row">
@@ -257,4 +677,4 @@
       </div>
     </div> -->
 
-  </div>
+</div>
